@@ -1,0 +1,114 @@
+---
+title: "E_Major_Theme"
+author: "邱奕勳"
+date: "2020/5/14"
+output: html_document
+---
+```{r}
+library(dplyr); library(stringr); library(ggplot2); library(plotly); library(lubridate); library(readr); library(tidyr); library(showtext);library(grid);library(readxl);library(gridExtra)
+font_add("QYuan","cwTeXQYuan-Medium.ttf") # 新增字體
+showtext_auto(enable=TRUE) #啟用字體
+```
+
+```{r}
+indicator <- read_excel("~/Desktop/indicator.xlsx")
+indicator$年月 %>% ymd() ->indicator$年月
+```
+
+
+#底圖
+## geom,geomcolor,geomsize
+## labs-axis.name 視情況可以不需要
+```{r}
+indicator%>%ggplot(aes(x=indicator$年月))+
+  geom_hline(yintercept = 100, color="black", linetype="longdash" , size =0.3)+
+  geom_line(aes(y=indicator$領先指標),color="#1f78b4",size=1.5)+ #geom,geomcolor,geomsize
+  geom_line(aes(y=indicator$同時指標),color="#33a02c",size=1.5)+
+  geom_line(aes(y=indicator$落後指標),color="#d95f02",size=1.5)+
+  labs(x="",y="",title = "景氣指標")+ #兩標、title
+  scale_y_discrete(limits = c(97:103), position = "right")+
+  geom_hline(yintercept = 97, color="black",size=1.5)+ #底線
+  scale_x_date(
+      breaks = seq(as.Date("2019-05-01"), as.Date("2020-03-01"), by="2 month"),
+      labels = c("05","07","09","11","2020-01","03")
+      )->baseplot
+
+baseplot
+```
+
+```{r}
+baseplot+theme(
+  plot.background = element_rect(fill="white"),
+  plot.margin = margin(0,0,0,20), #margin
+  panel.background = element_blank(),
+  panel.grid.major.y = element_line(color = "gray", size = 0.2),
+  panel.grid.major.x = element_blank(), 
+  axis.ticks.y = element_blank(),
+  axis.line.y = element_blank(),
+  axis.text.x = element_text(hjust = -0.1)
+)-> modifiedP
+modifiedP
+```
+#grid
+```{r}
+sources <-"sources: 國發會景氣指標查詢系統"
+grid.arrange(
+  modifiedP,
+  bottom = textGrob(
+    sources, x = 0.17 ,gp = gpar(fontface = 3L, fontsize = 9, col="#7c8290")
+    ))
+```
+
+
+```{r}
+sources <-"sources: 國發會景氣指標查詢系統"
+grid.arrange(
+  modifiedP, #graph
+  bottom = textGrob( #bottom sources
+    sources, x = 0.17 ,gp = gpar(fontface = 3L, fontsize = 9, col="#7c8290")
+    ),
+  top = rectGrob( #top tag
+    x = 0, y = 1, width = 0.05,just = c("left","top"), height = 0.2, gp = gpar(fill="red")))
+  
+```
+
+```{r}
+sources <-"sources: 國發會景氣指標查詢系統"
+grid.arrange(
+  modifiedP, #graph
+  bottom = textGrob( #bottom sources
+    sources, x = 0.17 ,gp = gpar(fontface = 3L, fontsize = 9, col="#7c8290")
+    ),
+  top = rectGrob( #top tag
+    x = 0, y = 1, width = 0.05,just = c("left","top"), height = 0.2, gp = gpar(fill="red")),arrangeGrob(modifiedP), ncol=2)
+  
+```
+
+
+```{r}
+my_circle <- circleGrob(
+  name = "my_circle",
+  x = 0.5, y = 0.5, r = 0.5,
+  gp = gpar(col = "gray", lty = 3)
+  )
+grid.draw(my_circle)
+
+my_rect <- rectGrob(x = 0.5, y = 0.5, width = 0.8, height = 0.3)
+grid.draw(my_rect)
+```
+
+```{r}
+grid.draw(rectGrob())
+sample_vp <- viewport(x = 0.5, y = 0.5, 
+                      width = 0.5, height = 0.5,
+                      just = c("left", "bottom"))
+pushViewport(sample_vp)
+grid.draw(roundrectGrob())
+grid.draw(my_rect)
+popViewport()
+```
+
+```{r}
+grid.show.viewport(viewport(x=0.6, y=0.6, width=unit(1, "inches"), height=unit(1, "inches"), angle=30))
+```
+

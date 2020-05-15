@@ -1,0 +1,12 @@
+---
+output: 
+  html_document:
+    theme: null
+    highlight: null
+    mathjax: null
+    self_contained: false
+    includes: 
+      after_body: "number-game-errors.html"
+---
+
+
