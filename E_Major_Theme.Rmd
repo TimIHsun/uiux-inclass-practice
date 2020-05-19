@@ -17,20 +17,17 @@ indicator$年月 %>% ymd() ->indicator$年月
 
 
 #底圖
-## geom,geomcolor,geomsize
-## labs-axis.name 視情況可以不需要
 ```{r}
 indicator%>%ggplot(aes(x=indicator$年月))+
-  geom_hline(yintercept = 100, color="black", linetype="longdash" , size =0.3)+
-  geom_line(aes(y=indicator$領先指標),color="#1f78b4",size=1.5)+ #geom,geomcolor,geomsize
+  geom_hline(yintercept = 100, color="black", linetype="longdash" , size =0.3)+ #標準線
+  geom_line(aes(y=indicator$領先指標),color="#1f78b4",size=1.5)+ #geom
   geom_line(aes(y=indicator$同時指標),color="#33a02c",size=1.5)+
   geom_line(aes(y=indicator$落後指標),color="#d95f02",size=1.5)+
-  labs(x="",y="",title = "景氣指標")+ #兩標、title
+  labs(x="",y="",title = "景氣指標", subtitle = "單位：點")+ #兩標、title
   scale_y_discrete(limits = c(97:103), position = "right")+
-  geom_hline(yintercept = 97, color="black",size=1.5)+ #底線
   scale_x_date(
       breaks = seq(as.Date("2019-05-01"), as.Date("2020-03-01"), by="2 month"),
-      labels = c("05","07","09","11","2020-01","03")
+      labels = c("201905","07","09","11","202001","03")
       )->baseplot
 
 baseplot
@@ -38,14 +35,17 @@ baseplot
 
 ```{r}
 baseplot+theme(
-  plot.background = element_rect(fill="white"),
-  plot.margin = margin(0,0,0,20), #margin
+  plot.background = element_blank(),
+  plot.margin = margin(30,0,0,20), #margin?
+  plot.subtitle = element_text(size = 10, color = "#7c8290"),
   panel.background = element_blank(),
   panel.grid.major.y = element_line(color = "gray", size = 0.2),
   panel.grid.major.x = element_blank(), 
   axis.ticks.y = element_blank(),
   axis.line.y = element_blank(),
-  axis.text.x = element_text(hjust = -0.1)
+  axis.text.x = element_text(hjust = -0.1, vjust = 1.5),
+  axis.line.x = element_line(color = "black"),
+  axis.ticks.length = unit(3.5,"pt")
 )-> modifiedP
 modifiedP
 ```
@@ -69,6 +69,8 @@ grid.arrange(
     ),
   top = rectGrob( #top tag
     x = 0, y = 1, width = 0.05,just = c("left","top"), height = 0.2, gp = gpar(fill="red")))
+
+
   
 ```
 
@@ -84,31 +86,52 @@ grid.arrange(
   
 ```
 
-
 ```{r}
-my_circle <- circleGrob(
-  name = "my_circle",
-  x = 0.5, y = 0.5, r = 0.5,
-  gp = gpar(col = "gray", lty = 3)
-  )
-grid.draw(my_circle)
+library(grid)
 
-my_rect <- rectGrob(x = 0.5, y = 0.5, width = 0.8, height = 0.3)
-grid.draw(my_rect)
+my_rect <- rectGrob(x = 0, y = 0.995, width = 0.02,just = c("left","top"), height = 0.05, gp = gpar(fill="#E74C3C", col = "red"))
+
+my_line <- linesGrob(x = unit(c(0.1, 1), "npc"),
+          y = unit(c(0, 0.9), "npc"),
+          default.units = "npc",
+          gp=gpar(color = "black"))
+
+my_srect <-rectGrob(x = 0, y = 0.995, width = 1,just = c("left","top"), height = 0.003, gp = gpar( fill = "#E74C3C", col = "red"))
+
+sources <-"sources: 國發會景氣指標查詢系統"
+
+my_text <- textGrob( #bottom sources
+    sources, x = 0.17,y=0.02 ,gp = gpar(fontface = 3L, fontsize = 9, col="#7c8290")
+    )
+grid.newpage()+grid.draw(my_srect)
 ```
 
 ```{r}
-grid.draw(rectGrob())
-sample_vp <- viewport(x = 0.5, y = 0.5, 
-                      width = 0.5, height = 0.5,
-                      just = c("left", "bottom"))
-pushViewport(sample_vp)
-grid.draw(roundrectGrob())
-grid.draw(my_rect)
-popViewport()
+grid.draw(modifiedP)+grid.draw(my_rect)+grid.draw(my_srect)+grid.draw(my_text) -> p2
+
+p2
+dev.off()
 ```
 
 ```{r}
-grid.show.viewport(viewport(x=0.6, y=0.6, width=unit(1, "inches"), height=unit(1, "inches"), angle=30))
+grid.arrange(modifiedP ,modifiedP,ncol=2)+grid.draw(my_rect)+grid.draw(my_srect)+grid.draw(my_text)
+```
+
+```{r}
+grid.arrange(modifiedP ,arrangeGrob(modifiedP),ncol=2)
+```
+```{r}
+grid.arrange(modifiedP, modifiedP, ncol =2)
+arrangeGrob(modifiedP, modifiedP, ncol = 2) ->ptest
+ggsave(filename = "p.pdf", ptest)
+```
+
+```{r}
+save(ptest, file = "myplottest.png")
+```
+
+```{r}
+class(p2)
+class(my_line)
 ```
 
